@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>AuraCoursePlanner</RootNamespace>
+	<ApplicationIcon>Assets\Icons\AuraCourse.ico</ApplicationIcon>
+    <ApplicationTitle>AuraCourse Planner</ApplicationTitle>
+
+    <!--
+      NU1701 warnings come from LiveChartsCore.SkiaSharpView.WPF's own transitive
+      dependencies (OpenTK, OpenTK.GLWpfControl, SkiaSharp.Views.WPF) still targeting
+      .NET Framework instead of net9.0-windows. This is upstream (pre-1.0 package),
+      not something fixable from our csproj beyond suppressing the noise.
+    -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Pinned to the exact resolved version to remove the NU1603 "not found, using X instead" warning -->
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc4.5" />
+  </ItemGroup>
+
+</Project>

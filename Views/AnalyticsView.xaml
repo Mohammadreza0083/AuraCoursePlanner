@@ -1,0 +1,51 @@
+<UserControl x:Class="AuraCoursePlanner.Views.AnalyticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+
+	<Grid Margin="28">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+
+		<TextBlock Grid.Row="0" Text="Analytics" Style="{StaticResource HeadingText}" FontSize="26" Margin="0,0,0,16"/>
+
+		<StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
+			<ComboBox Width="320" HorizontalAlignment="Left"
+                      Style="{StaticResource ModernComboBox}"
+                      ItemsSource="{Binding Courses}"
+                      SelectedItem="{Binding SelectedAnalyticsCourse, Mode=TwoWay}">
+				<ComboBox.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Title}"/>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<Button Content="View Course Details"
+                    Style="{StaticResource PrimaryButton}"
+                    Margin="12,0,0,0"
+                    Padding="16,0"
+                    Command="{Binding SelectCourseCommand}"
+                    CommandParameter="{Binding SelectedAnalyticsCourse}"
+                    Visibility="{Binding SelectedAnalyticsCourse, Converter={StaticResource NullToVisibilityConverter}}"/>
+		</StackPanel>
+
+		<Border Grid.Row="2" Style="{StaticResource CardStyle}">
+			<Grid>
+				<TextBlock Text="Select a course above to see its burndown trend."
+                           Style="{StaticResource SubtleText}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding SelectedAnalyticsCourse, Converter={StaticResource NullToVisibilityConverter},                                        ConverterParameter=Invert}"/>
+
+				<lvc:CartesianChart x:Name="BurndownChart"
+                    Visibility="{Binding SelectedAnalyticsCourse, Converter={StaticResource NullToVisibilityConverter}}"
+                    Series="{Binding SelectedAnalyticsCourse.BurndownSeries}"
+                    XAxes="{Binding SelectedAnalyticsCourse.BurndownXAxes}"
+                    YAxes="{Binding SelectedAnalyticsCourse.BurndownYAxes}"/>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>
