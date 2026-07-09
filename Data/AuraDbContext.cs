@@ -27,6 +27,9 @@ public class AuraDbContext : DbContext
         {
             entity.HasKey(c => c.Id);
             entity.Property(c => c.Title).IsRequired().HasMaxLength(200);
+            entity.Property(c => c.Priority)
+                  .HasConversion<int>()
+                  .HasDefaultValue(CoursePriority.Medium);
             entity.HasMany(c => c.StudySessions)
                   .WithOne(s => s.Course)
                   .HasForeignKey(s => s.CourseId)

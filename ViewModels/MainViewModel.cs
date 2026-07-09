@@ -21,10 +21,18 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private CourseViewModel? selectedCourse;
     [ObservableProperty] private CourseViewModel? selectedAnalyticsCourse;
 
-    // Add-course form
+    // Add/Edit-course form (the same form is reused for both flows)
     [ObservableProperty] private string newCourseTitle = string.Empty;
     [ObservableProperty] private int newCourseHours;
     [ObservableProperty] private int newCourseMinutes;
+    [ObservableProperty] private CoursePriority newCoursePriority = CoursePriority.Medium;
+
+    /// <summary>Null while adding a new course; set to the course being edited
+    /// while the Add/Edit form is open in edit mode.</summary>
+    [ObservableProperty] private Guid? editingCourseId;
+
+    public bool IsEditingCourse => EditingCourseId.HasValue;
+    public string AddCourseFormTitle => IsEditingCourse ? "Edit Course" : "Add Course";
 
     // Date inputs (Manual properties with Clamping)
     private int _selectedDay = 0;
@@ -62,6 +70,12 @@ public partial class MainViewModel : ObservableObject
         CalculatedDateString = result.ToString("dd/MM/yyyy");
     }
 
+    partial void OnEditingCourseIdChanged(Guid? value)
+    {
+        OnPropertyChanged(nameof(IsEditingCourse));
+        OnPropertyChanged(nameof(AddCourseFormTitle));
+    }
+
     // Dashboard summary metrics
     public int TotalActiveCourses => Courses.Count(c => !c.IsCompleted);
     public double TotalHoursWatched => Courses.Sum(c => c.TotalWatched.TotalHours);
@@ -86,8 +100,26 @@ public partial class MainViewModel : ObservableObject
             courseEntities.Select(c => new CourseViewModel(c, _dbFactory)));
 
         await BackfillMissedDaysAsync();
+        ApplyPrioritySort();
         RaiseSummaryChanged();
     }
+
+    /// <summary>Prioritization feature: reorders the dashboard so High-priority,
+    /// not-yet-completed courses surface first, then by soonest deadline within
+    /// the same priority tier. Completed courses sink to the bottom.</summary>
+    private void ApplyPrioritySort()
+    {
+        var sorted = Courses
+            .OrderBy(c => c.IsCompleted)
+            .ThenBy(c => c.PriorityRank)
+            .ThenBy(c => c.GoalEndDate)
+            .ToList();
+
+        Courses = new ObservableCollection<CourseViewModel>(sorted);
+    }
+
+    [RelayCommand]
+    private void SortByPriority() => ApplyPrioritySort();
 
     private async Task BackfillMissedDaysAsync()
     {
@@ -144,6 +176,59 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void CloseCourseDetail() => SelectedCourse = null;
 
+    /// <summary>Opens the Add/Edit form in "add" mode with blank fields.</summary>
+    [RelayCommand]
+    private void StartAddCourse()
+    {
+        EditingCourseId = null;
+        NewCourseTitle = string.Empty;
+        NewCourseHours = 0;
+        NewCourseMinutes = 0;
+        NewCoursePriority = CoursePriority.Medium;
+        SelectedDay = 0;
+        SelectedMonth = 0;
+        SelectedYear = 0;
+        UpdateCalculatedDate();
+        CurrentView = AppView.AddCourse;
+    }
+
+    /// <summary>Opens the Add/Edit form pre-filled with an existing course's
+    /// values so the user can change them (the Edit Course feature).</summary>
+    [RelayCommand]
+    private void StartEditCourse(CourseViewModel? course)
+    {
+        if (course is null) return;
+
+        EditingCourseId = course.Id;
+        NewCourseTitle = course.Title;
+        NewCourseHours = (int)course.TotalDuration.TotalHours;
+        NewCourseMinutes = course.TotalDuration.Minutes;
+        NewCoursePriority = course.Priority;
+
+        // Re-derive the day/month/year offset fields from the stored deadline
+        // so the same relative-date picker used for Add works for Edit too.
+        var today = DateTime.Today;
+        var goal = course.GoalEndDate.Date;
+        var months = ((goal.Year - today.Year) * 12) + (goal.Month - today.Month);
+        var approxMonthDate = today.AddMonths(months);
+        var days = (goal - approxMonthDate).Days;
+        if (days < 0) { months -= 1; approxMonthDate = today.AddMonths(months); days = (goal - approxMonthDate).Days; }
+
+        SelectedYear = Math.Clamp(months / 12, 0, 10);
+        SelectedMonth = Math.Clamp(months % 12, 0, 12);
+        SelectedDay = Math.Clamp(days, 1, 31);
+        UpdateCalculatedDate();
+
+        CurrentView = AppView.AddCourse;
+    }
+
+    [RelayCommand]
+    private void CancelAddCourse()
+    {
+        EditingCourseId = null;
+        CurrentView = AppView.Dashboard;
+    }
+
     [RelayCommand]
     private async Task AddCourseAsync()
     {
@@ -155,24 +240,51 @@ public partial class MainViewModel : ObservableObject
             .AddMonths(SelectedMonth)
             .AddYears(SelectedYear);
 
-        var course = new Course
-        {
-            Title = NewCourseTitle.Trim(),
-            TotalDuration = new TimeSpan(NewCourseHours, NewCourseMinutes, 0),
-            GoalEndDate = finalDate
-        };
+        var duration = new TimeSpan(NewCourseHours, NewCourseMinutes, 0);
+        var title = NewCourseTitle.Trim();
 
         await using var db = _dbFactory();
-        db.Courses.Add(course);
-        await db.SaveChangesAsync();
 
-        Courses.Add(new CourseViewModel(course, _dbFactory));
+        if (EditingCourseId is Guid editId)
+        {
+            var entity = await db.Courses.FirstOrDefaultAsync(c => c.Id == editId);
+            if (entity is not null)
+            {
+                entity.Title = title;
+                entity.TotalDuration = duration;
+                entity.GoalEndDate = finalDate;
+                entity.Priority = NewCoursePriority;
+                await db.SaveChangesAsync();
+
+                var existingVm = Courses.FirstOrDefault(c => c.Id == editId);
+                existingVm?.ApplyEdit(title, duration, finalDate, NewCoursePriority);
+            }
+        }
+        else
+        {
+            var course = new Course
+            {
+                Title = title,
+                TotalDuration = duration,
+                GoalEndDate = finalDate,
+                Priority = NewCoursePriority
+            };
+
+            db.Courses.Add(course);
+            await db.SaveChangesAsync();
+
+            Courses.Add(new CourseViewModel(course, _dbFactory));
+        }
+
+        ApplyPrioritySort();
         RaiseSummaryChanged();
 
         // Reset inputs
+        EditingCourseId = null;
         NewCourseTitle = string.Empty;
         NewCourseHours = 0;
         NewCourseMinutes = 0;
+        NewCoursePriority = CoursePriority.Medium;
         SelectedDay = 0;
         SelectedMonth = 0;
         SelectedYear = 0;
@@ -196,6 +308,12 @@ public partial class MainViewModel : ObservableObject
         Courses.Remove(course);
         if (SelectedCourse == course) SelectedCourse = null;
         if (SelectedAnalyticsCourse == course) SelectedAnalyticsCourse = null;
+        if (EditingCourseId == course.Id)
+        {
+            // Someone deleted the course they were mid-edit on; bail out of the form.
+            EditingCourseId = null;
+            CurrentView = AppView.Dashboard;
+        }
         RaiseSummaryChanged();
     }
 

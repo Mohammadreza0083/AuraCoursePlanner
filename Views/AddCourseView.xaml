@@ -1,11 +1,50 @@
 <UserControl x:Class="AuraCoursePlanner.Views.AddCourseView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:AuraCoursePlanner.Models">
+
+	<UserControl.Resources>
+		<!-- Segmented-control-style RadioButton for the priority picker. Self-contained
+             here since it isn't part of the shared style dictionary. -->
+		<Style x:Key="PrioritySelectorButton" TargetType="RadioButton">
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="Padding" Value="0,10"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Foreground" Value="#D4D4D8"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="RadioButton">
+						<Border x:Name="Root" CornerRadius="8" Background="#22222C"
+                                BorderBrush="#3F3F46" BorderThickness="1">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsChecked" Value="True">
+								<Setter TargetName="Root" Property="Background" Value="#312E81"/>
+								<Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
+							</Trigger>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</UserControl.Resources>
 
 	<Grid VerticalAlignment="Center" HorizontalAlignment="Center">
 		<Border Width="560" Style="{StaticResource CardStyle}" Padding="32">
 			<StackPanel>
-				<TextBlock Text="Add a New Course" Style="{StaticResource HeadingText}" FontSize="24" Margin="0,0,0,24"/>
+				<Grid Margin="0,0,0,24">
+					<TextBlock Text="{Binding AddCourseFormTitle}" Style="{StaticResource HeadingText}" FontSize="24"/>
+					<Button Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{StaticResource TextSecondaryBrush}" Cursor="Hand"
+                            Command="{Binding CancelAddCourseCommand}"/>
+				</Grid>
 
 				<!-- Top Inputs -->
 				<TextBlock Text="Course Title" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
@@ -30,6 +69,36 @@
 						<TextBox Text="{Binding NewCourseMinutes, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}"/>
 					</StackPanel>
+				</Grid>
+
+				<!-- Priority Section -->
+				<TextBlock Text="Priority" Style="{StaticResource SubtleText}" Margin="2,0,0,8"/>
+				<Grid Margin="0,0,0,20">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="10"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="10"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+
+					<RadioButton Grid.Column="0" GroupName="Priority" Content="🧊 Low"
+                                 Style="{StaticResource PrioritySelectorButton}"
+                                 IsChecked="{Binding NewCoursePriority,
+                                             Converter={StaticResource EnumToBoolConverter},
+                                             ConverterParameter={x:Static models:CoursePriority.Low}}"/>
+
+					<RadioButton Grid.Column="2" GroupName="Priority" Content="⚖️ Medium"
+                                 Style="{StaticResource PrioritySelectorButton}"
+                                 IsChecked="{Binding NewCoursePriority,
+                                             Converter={StaticResource EnumToBoolConverter},
+                                             ConverterParameter={x:Static models:CoursePriority.Medium}}"/>
+
+					<RadioButton Grid.Column="4" GroupName="Priority" Content="🔥 High"
+                                 Style="{StaticResource PrioritySelectorButton}"
+                                 IsChecked="{Binding NewCoursePriority,
+                                             Converter={StaticResource EnumToBoolConverter},
+                                             ConverterParameter={x:Static models:CoursePriority.High}}"/>
 				</Grid>
 
 				<!-- Separator Section -->
@@ -75,7 +144,7 @@
                          Text="{Binding CalculatedDateString, UpdateSourceTrigger=PropertyChanged}"
                          Style="{StaticResource ModernTextBox}" Margin="0,0,0,28" Background="#18181B"/>
 
-				<Button Content="Create Course" Style="{StaticResource PrimaryButton}"
+				<Button Content="{Binding AddCourseFormTitle}" Style="{StaticResource PrimaryButton}"
                         Command="{Binding AddCourseCommand}" Height="46" FontSize="15" FontWeight="SemiBold"/>
 			</StackPanel>
 		</Border>

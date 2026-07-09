@@ -22,7 +22,25 @@ public partial class CourseViewModel : ObservableObject
     [ObservableProperty] private TimeSpan totalDuration;
     [ObservableProperty] private DateTime goalEndDate;
     [ObservableProperty] private ObservableCollection<StudySession> sessions = new();
+    [ObservableProperty] private CoursePriority priority;
     public DateTime CreatedAt { get; }
+
+    /// <summary>0 = highest priority, used purely for sorting.</summary>
+    public int PriorityRank => Priority switch
+    {
+        CoursePriority.High => 0,
+        CoursePriority.Medium => 1,
+        CoursePriority.Low => 2,
+        _ => 1
+    };
+
+    public string PriorityDisplay => Priority switch
+    {
+        CoursePriority.High => "🔥 High",
+        CoursePriority.Medium => "⚖️ Medium",
+        CoursePriority.Low => "🧊 Low",
+        _ => Priority.ToString()
+    };
 
     [ObservableProperty] private DateTime logDate = DateTime.Today;
     [ObservableProperty] private int logHours;
@@ -39,8 +57,15 @@ public partial class CourseViewModel : ObservableObject
         title = course.Title;
         totalDuration = course.TotalDuration;
         goalEndDate = course.GoalEndDate;
+        priority = course.Priority;
         sessions = new ObservableCollection<StudySession>(
             course.StudySessions.OrderByDescending(s => s.Date));
+    }
+
+    partial void OnPriorityChanged(CoursePriority value)
+    {
+        OnPropertyChanged(nameof(PriorityRank));
+        OnPropertyChanged(nameof(PriorityDisplay));
     }
 
     public TimeSpan TotalWatched => TimeSpan.FromTicks(Sessions.Sum(s => s.DurationWatched.Ticks));
@@ -267,6 +292,17 @@ public partial class CourseViewModel : ObservableObject
         Sessions.Insert(0, session);
         RaiseAllMetricsChanged();
         OnPropertyChanged(nameof(IsTodayCheckedIn));
+    }
+
+    /// <summary>Applies edited core fields (used by the Edit Course flow) and
+    /// refreshes every derived metric that depends on them.</summary>
+    public void ApplyEdit(string newTitle, TimeSpan newTotalDuration, DateTime newGoalEndDate, CoursePriority newPriority)
+    {
+        Title = newTitle;
+        TotalDuration = newTotalDuration;
+        GoalEndDate = newGoalEndDate;
+        Priority = newPriority;
+        RaiseAllMetricsChanged();
     }
 
     public void RefreshMetrics() => RaiseAllMetricsChanged();

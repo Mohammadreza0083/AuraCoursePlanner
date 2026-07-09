@@ -58,7 +58,8 @@
 							<Run Text="{Binding GoalEndDate, Mode=OneWay, StringFormat={}{0:MMMM d, yyyy}}"/>
 							<Run Text=" · "/>
 							<Run Text="{Binding RemainingDays, Mode=OneWay}"/>
-							<Run Text=" days left"/>
+							<Run Text=" days left · "/>
+							<Run Text="{Binding PriorityDisplay, Mode=OneWay}"/>
 						</TextBlock>
 					</StackPanel>
 

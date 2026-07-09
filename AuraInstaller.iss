@@ -17,3 +17,8 @@ Source: ".\bin\publish\AuraCoursePlanner.exe"; DestDir: "{app}"; Flags: ignoreve
 [Icons]
 Name: "{group}\AuraCourse Planner"; Filename: "{app}\AuraCoursePlanner.exe"
 Name: "{commondesktop}\AuraCourse Planner"; Filename: "{app}\AuraCoursePlanner.exe"; IconFilename: "{app}\AuraCoursePlanner.exe"
+[Code]
+function InitializeSetup(): Boolean;
+begin
+  Result := True;
+end;

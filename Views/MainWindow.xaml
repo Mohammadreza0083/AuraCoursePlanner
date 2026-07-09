@@ -8,47 +8,49 @@
         WindowStartupLocation="CenterScreen"
         FontFamily="{StaticResource AppFont}">
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="220"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
 
-        <!-- ================= SIDEBAR ================= -->
-        <Border Grid.Column="0" Background="#131318" BorderBrush="{StaticResource CardBorderBrush}"
+		<!-- ================= SIDEBAR ================= -->
+		<Border Grid.Column="0" Background="#131318" BorderBrush="{StaticResource CardBorderBrush}"
                 BorderThickness="0,0,1,0">
-            <StackPanel Margin="16,24">
-                <TextBlock Text="AuraCourse" Style="{StaticResource HeadingText}" Margin="6,0,0,4"/>
-                <TextBlock Text="Planner" Style="{StaticResource SubtleText}" Margin="6,0,0,32"/>
+			<StackPanel Margin="16,24">
+				<TextBlock Text="AuraCourse" Style="{StaticResource HeadingText}" Margin="6,0,0,4"/>
+				<TextBlock Text="Planner" Style="{StaticResource SubtleText}" Margin="6,0,0,32"/>
 
-                <Button Content="📊  Dashboard" Style="{StaticResource SidebarButton}" Margin="0,0,0,6"
+				<Button Content="📊  Dashboard" Style="{StaticResource SidebarButton}" Margin="0,0,0,6"
                         Command="{Binding NavigateToCommand}" CommandParameter="{x:Static vm:AppView.Dashboard}"/>
-                <Button Content="➕  Add Course" Style="{StaticResource SidebarButton}" Margin="0,0,0,6"
-                        Command="{Binding NavigateToCommand}" CommandParameter="{x:Static vm:AppView.AddCourse}"/>
-                <Button Content="📈  Analytics" Style="{StaticResource SidebarButton}"
+				<!-- Uses StartAddCourseCommand (not NavigateToCommand) so the form always
+                     opens blank in "add" mode, even if it was left mid-edit elsewhere. -->
+				<Button Content="➕  Add Course" Style="{StaticResource SidebarButton}" Margin="0,0,0,6"
+                        Command="{Binding StartAddCourseCommand}"/>
+				<Button Content="📈  Analytics" Style="{StaticResource SidebarButton}"
                         Command="{Binding NavigateToCommand}" CommandParameter="{x:Static vm:AppView.Analytics}"/>
-            </StackPanel>
-        </Border>
+			</StackPanel>
+		</Border>
 
-        <!-- ================= CONTENT AREA ================= -->
-        <!-- Each child is a UserControl sharing the MainViewModel DataContext. Only the view
+		<!-- ================= CONTENT AREA ================= -->
+		<!-- Each child is a UserControl sharing the MainViewModel DataContext. Only the view
              matching CurrentView is visible; EnumToVisibilityConverter keeps this fully MVVM. -->
-        <Grid Grid.Column="1">
-            <views:DashboardView
+		<Grid Grid.Column="1">
+			<views:DashboardView
                 Visibility="{Binding CurrentView, Converter={StaticResource EnumToVisibilityConverter},
                              ConverterParameter={x:Static vm:AppView.Dashboard}}"/>
 
-            <views:AddCourseView
+			<views:AddCourseView
                 Visibility="{Binding CurrentView, Converter={StaticResource EnumToVisibilityConverter},
                              ConverterParameter={x:Static vm:AppView.AddCourse}}"/>
 
-            <views:AnalyticsView
+			<views:AnalyticsView
                 Visibility="{Binding CurrentView, Converter={StaticResource EnumToVisibilityConverter},
                              ConverterParameter={x:Static vm:AppView.Analytics}}"/>
 
-            <!-- Course detail flyout overlays the dashboard when a course is selected -->
-            <views:CourseDetailView DataContext="{Binding SelectedCourse}"
+			<!-- Course detail flyout overlays the dashboard when a course is selected -->
+			<views:CourseDetailView DataContext="{Binding SelectedCourse}"
                 Visibility="{Binding Converter={StaticResource NullToVisibilityConverter}}"/>
-        </Grid>
-    </Grid>
+		</Grid>
+	</Grid>
 </Window>
