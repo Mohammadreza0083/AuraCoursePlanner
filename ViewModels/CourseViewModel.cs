@@ -23,7 +23,43 @@ public partial class CourseViewModel : ObservableObject
     [ObservableProperty] private DateTime goalEndDate;
     [ObservableProperty] private ObservableCollection<StudySession> sessions = new();
     [ObservableProperty] private CoursePriority priority;
+    [ObservableProperty] private int scheduledDaysMask = 127;
     public DateTime CreatedAt { get; }
+
+    public bool IsDayScheduled(DayOfWeek day) => (ScheduledDaysMask & (1 << (int)day)) != 0;
+
+    private void SetDayScheduled(DayOfWeek day, bool value)
+    {
+        var bit = 1 << (int)day;
+        var newMask = value ? (ScheduledDaysMask | bit) : (ScheduledDaysMask & ~bit);
+        if (newMask != ScheduledDaysMask) ScheduledDaysMask = newMask;
+    }
+
+    // Individual bindable toggles for a 7-day picker in XAML (CheckBox IsChecked="{Binding IsMondayScheduled}" etc.)
+    public bool IsSundayScheduled { get => IsDayScheduled(DayOfWeek.Sunday); set => SetDayScheduled(DayOfWeek.Sunday, value); }
+    public bool IsMondayScheduled { get => IsDayScheduled(DayOfWeek.Monday); set => SetDayScheduled(DayOfWeek.Monday, value); }
+    public bool IsTuesdayScheduled { get => IsDayScheduled(DayOfWeek.Tuesday); set => SetDayScheduled(DayOfWeek.Tuesday, value); }
+    public bool IsWednesdayScheduled { get => IsDayScheduled(DayOfWeek.Wednesday); set => SetDayScheduled(DayOfWeek.Wednesday, value); }
+    public bool IsThursdayScheduled { get => IsDayScheduled(DayOfWeek.Thursday); set => SetDayScheduled(DayOfWeek.Thursday, value); }
+    public bool IsFridayScheduled { get => IsDayScheduled(DayOfWeek.Friday); set => SetDayScheduled(DayOfWeek.Friday, value); }
+    public bool IsSaturdayScheduled { get => IsDayScheduled(DayOfWeek.Saturday); set => SetDayScheduled(DayOfWeek.Saturday, value); }
+
+    /// <summary>Whether today is one of this course's scheduled study days.
+    /// Used both for the "rest day" pace display and for the tray notification.</summary>
+    public bool IsTodayScheduled => IsDayScheduled(DateTime.Today.DayOfWeek);
+
+    partial void OnScheduledDaysMaskChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsSundayScheduled));
+        OnPropertyChanged(nameof(IsMondayScheduled));
+        OnPropertyChanged(nameof(IsTuesdayScheduled));
+        OnPropertyChanged(nameof(IsWednesdayScheduled));
+        OnPropertyChanged(nameof(IsThursdayScheduled));
+        OnPropertyChanged(nameof(IsFridayScheduled));
+        OnPropertyChanged(nameof(IsSaturdayScheduled));
+        OnPropertyChanged(nameof(IsTodayScheduled));
+        RaiseAllMetricsChanged();
+    }
 
     /// <summary>0 = highest priority, used purely for sorting.</summary>
     public int PriorityRank => Priority switch
@@ -58,6 +94,7 @@ public partial class CourseViewModel : ObservableObject
         totalDuration = course.TotalDuration;
         goalEndDate = course.GoalEndDate;
         priority = course.Priority;
+        scheduledDaysMask = course.ScheduledDaysMask;
         sessions = new ObservableCollection<StudySession>(
             course.StudySessions.OrderByDescending(s => s.Date));
     }
@@ -100,6 +137,30 @@ public partial class CourseViewModel : ObservableObject
         }
     }
 
+    /// <summary>How many of the remaining calendar days between today and the deadline
+    /// (inclusive) actually fall on a day this course is scheduled for. This is what
+    /// pacing is now based on — previously every single day counted, which overstated
+    /// how much slack you had if you only study a few days a week.</summary>
+    public int RemainingScheduledDays
+    {
+        get
+        {
+            if (ScheduledDaysMask == 0) return RemainingDays; // nothing selected: fall back to every day
+
+            var count = 0;
+            var cursor = DateTime.Today;
+            var end = GoalEndDate.Date;
+            if (end < cursor) return 0;
+
+            while (cursor <= end)
+            {
+                if (IsDayScheduled(cursor.DayOfWeek)) count++;
+                cursor = cursor.AddDays(1);
+            }
+            return count;
+        }
+    }
+
     public bool IsOverdue => (GoalEndDate.Date - DateTime.Today).Days < 0 && RemainingTime > TimeSpan.Zero;
 
     public bool IsCompleted => TotalWatched >= TotalDuration && TotalDuration > TimeSpan.Zero;
@@ -109,17 +170,25 @@ public partial class CourseViewModel : ObservableObject
         get
         {
             if (IsCompleted) return TimeSpan.Zero;
-            if (RemainingDays <= 0)
+            var scheduledDaysLeft = RemainingScheduledDays;
+            if (scheduledDaysLeft <= 0)
             {
                 return RemainingTime;
             }
-            var minutesPerDay = RemainingTime.TotalMinutes / RemainingDays;
+            var minutesPerDay = RemainingTime.TotalMinutes / scheduledDaysLeft;
             return TimeSpan.FromMinutes(Math.Max(minutesPerDay, 0));
         }
     }
 
-    public string DynamicDailyPaceDisplay =>
-        IsCompleted ? "✅ Completed" : $"⚡ Target: {FormatHm(DynamicDailyPace)}/day";
+    public string DynamicDailyPaceDisplay
+    {
+        get
+        {
+            if (IsCompleted) return "✅ Completed";
+            if (!IsTodayScheduled) return "😴 Rest day — no session planned today";
+            return $"⚡ Target: {FormatHm(DynamicDailyPace)}/day";
+        }
+    }
 
     public DateTime? EstimatedCompletionDate
     {
@@ -296,12 +365,14 @@ public partial class CourseViewModel : ObservableObject
 
     /// <summary>Applies edited core fields (used by the Edit Course flow) and
     /// refreshes every derived metric that depends on them.</summary>
-    public void ApplyEdit(string newTitle, TimeSpan newTotalDuration, DateTime newGoalEndDate, CoursePriority newPriority)
+    public void ApplyEdit(string newTitle, TimeSpan newTotalDuration, DateTime newGoalEndDate,
+        CoursePriority newPriority, int newScheduledDaysMask)
     {
         Title = newTitle;
         TotalDuration = newTotalDuration;
         GoalEndDate = newGoalEndDate;
         Priority = newPriority;
+        ScheduledDaysMask = newScheduledDaysMask;
         RaiseAllMetricsChanged();
     }
 
@@ -314,6 +385,7 @@ public partial class CourseViewModel : ObservableObject
         OnPropertyChanged(nameof(ProgressPercentage));
         OnPropertyChanged(nameof(ProgressPercentageDisplay));
         OnPropertyChanged(nameof(RemainingDays));
+        OnPropertyChanged(nameof(RemainingScheduledDays));
         OnPropertyChanged(nameof(IsOverdue));
         OnPropertyChanged(nameof(IsCompleted));
         OnPropertyChanged(nameof(DynamicDailyPace));

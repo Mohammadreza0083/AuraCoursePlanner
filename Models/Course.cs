@@ -28,6 +28,10 @@ public class Course
     // Manual priority set by the user (defaults to Medium for existing rows).
     public CoursePriority Priority { get; set; } = CoursePriority.Medium;
 
+    // Bitmask of DayOfWeek (1 << (int)DayOfWeek) representing which days of the
+    // week this course is meant to be studied on. Defaults to every day (127 = all 7 bits set).
+    public int ScheduledDaysMask { get; set; } = 127;
+
     // Navigation property
     public List<StudySession> StudySessions { get; set; } = new();
 }

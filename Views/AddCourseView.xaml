@@ -3,150 +3,214 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:AuraCoursePlanner.Models">
 
-	<UserControl.Resources>
-		<!-- Segmented-control-style RadioButton for the priority picker. Self-contained
+    <UserControl.Resources>
+        <!-- Segmented-control-style RadioButton for the priority picker. Self-contained
              here since it isn't part of the shared style dictionary. -->
-		<Style x:Key="PrioritySelectorButton" TargetType="RadioButton">
-			<Setter Property="Cursor" Value="Hand"/>
-			<Setter Property="Padding" Value="0,10"/>
-			<Setter Property="HorizontalContentAlignment" Value="Center"/>
-			<Setter Property="FontSize" Value="13"/>
-			<Setter Property="FontWeight" Value="SemiBold"/>
-			<Setter Property="Foreground" Value="#D4D4D8"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="RadioButton">
-						<Border x:Name="Root" CornerRadius="8" Background="#22222C"
+        <Style x:Key="PrioritySelectorButton" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0,10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#D4D4D8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Root" CornerRadius="8" Background="#22222C"
                                 BorderBrush="#3F3F46" BorderThickness="1">
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Border>
-						<ControlTemplate.Triggers>
-							<Trigger Property="IsChecked" Value="True">
-								<Setter TargetName="Root" Property="Background" Value="#312E81"/>
-								<Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
-							</Trigger>
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-	</UserControl.Resources>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#312E81"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-	<Grid VerticalAlignment="Center" HorizontalAlignment="Center">
-		<Border Width="560" Style="{StaticResource CardStyle}" Padding="32">
-			<StackPanel>
-				<Grid Margin="0,0,0,24">
-					<TextBlock Text="{Binding AddCourseFormTitle}" Style="{StaticResource HeadingText}" FontSize="24"/>
-					<Button Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Center"
+        <!-- Same segmented look as the priority selector but compact, for a 7-across day picker -->
+        <Style x:Key="DaySelectorToggle" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#D4D4D8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Root" CornerRadius="8" Background="#22222C"
+                                BorderBrush="#3F3F46" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#312E81"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="#6366F1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Border Width="560" Style="{StaticResource CardStyle}" Padding="32">
+            <StackPanel>
+                <Grid Margin="0,0,0,24">
+                    <TextBlock Text="{Binding AddCourseFormTitle}" Style="{StaticResource HeadingText}" FontSize="24"/>
+                    <Button Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Center"
                             Background="Transparent" BorderThickness="0"
                             Foreground="{StaticResource TextSecondaryBrush}" Cursor="Hand"
                             Command="{Binding CancelAddCourseCommand}"/>
-				</Grid>
+                </Grid>
 
-				<!-- Top Inputs -->
-				<TextBlock Text="Course Title" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
-				<TextBox Text="{Binding NewCourseTitle, UpdateSourceTrigger=PropertyChanged}"
+                <!-- Top Inputs -->
+                <TextBlock Text="Course Title" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
+                <TextBox Text="{Binding NewCourseTitle, UpdateSourceTrigger=PropertyChanged}"
                          Style="{StaticResource ModernTextBox}" Margin="0,0,0,20"/>
 
-				<Grid Margin="0,0,0,20">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="20"/>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-					<StackPanel Grid.Column="0">
-						<TextBlock Text="Total Hours" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
-						<TextBox Text="{Binding NewCourseHours, UpdateSourceTrigger=PropertyChanged}"
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Total Hours" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
+                        <TextBox Text="{Binding NewCourseHours, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}"/>
-					</StackPanel>
+                    </StackPanel>
 
-					<StackPanel Grid.Column="2">
-						<TextBlock Text="Minutes" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
-						<TextBox Text="{Binding NewCourseMinutes, UpdateSourceTrigger=PropertyChanged}"
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Minutes" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
+                        <TextBox Text="{Binding NewCourseMinutes, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}"/>
-					</StackPanel>
-				</Grid>
+                    </StackPanel>
+                </Grid>
 
-				<!-- Priority Section -->
-				<TextBlock Text="Priority" Style="{StaticResource SubtleText}" Margin="2,0,0,8"/>
-				<Grid Margin="0,0,0,20">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="10"/>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="10"/>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
+                <!-- Priority Section -->
+                <TextBlock Text="Priority" Style="{StaticResource SubtleText}" Margin="2,0,0,8"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-					<RadioButton Grid.Column="0" GroupName="Priority" Content="🧊 Low"
+                    <RadioButton Grid.Column="0" GroupName="Priority" Content="🧊 Low"
                                  Style="{StaticResource PrioritySelectorButton}"
                                  IsChecked="{Binding NewCoursePriority,
                                              Converter={StaticResource EnumToBoolConverter},
                                              ConverterParameter={x:Static models:CoursePriority.Low}}"/>
 
-					<RadioButton Grid.Column="2" GroupName="Priority" Content="⚖️ Medium"
+                    <RadioButton Grid.Column="2" GroupName="Priority" Content="⚖️ Medium"
                                  Style="{StaticResource PrioritySelectorButton}"
                                  IsChecked="{Binding NewCoursePriority,
                                              Converter={StaticResource EnumToBoolConverter},
                                              ConverterParameter={x:Static models:CoursePriority.Medium}}"/>
 
-					<RadioButton Grid.Column="4" GroupName="Priority" Content="🔥 High"
+                    <RadioButton Grid.Column="4" GroupName="Priority" Content="🔥 High"
                                  Style="{StaticResource PrioritySelectorButton}"
                                  IsChecked="{Binding NewCoursePriority,
                                              Converter={StaticResource EnumToBoolConverter},
                                              ConverterParameter={x:Static models:CoursePriority.High}}"/>
-				</Grid>
+                </Grid>
 
-				<!-- Separator Section -->
-				<Grid Margin="0,10,0,25">
-					<Rectangle Height="1" Fill="#3F3F46" VerticalAlignment="Center"/>
-					<Border Background="#1E1E24" HorizontalAlignment="Center" Padding="8,0">
-						<TextBlock Text="End Date" Foreground="#9CA3AF" FontSize="12" FontWeight="SemiBold"/>
-					</Border>
-				</Grid>
+                <!-- Scheduled Days Section -->
+                <TextBlock Text="Study Days" Style="{StaticResource SubtleText}" Margin="2,0,0,8"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="6"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-				<!-- Date Inputs -->
-				<Grid Margin="0,0,0,20">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="10"/>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="10"/>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" Content="Sun" Style="{StaticResource DaySelectorToggle}"
+                              IsChecked="{Binding NewCourseSunday}"/>
+                    <CheckBox Grid.Column="2" Content="Mon" Style="{StaticResource DaySelectorToggle}"
+                              IsChecked="{Binding NewCourseMonday}"/>
+                    <CheckBox Grid.Column="4" Content="Tue" Style="{StaticResource DaySelectorToggle}"
+                              IsChecked="{Binding NewCourseTuesday}"/>
+                    <CheckBox Grid.Column="6" Content="Wed" Style="{StaticResource DaySelectorToggle}"
+                              IsChecked="{Binding NewCourseWednesday}"/>
+                    <CheckBox Grid.Column="8" Content="Thu" Style="{StaticResource DaySelectorToggle}"
+                              IsChecked="{Binding NewCourseThursday}"/>
+                    <CheckBox Grid.Column="10" Content="Fri" Style="{StaticResource DaySelectorToggle}"
+                              IsChecked="{Binding NewCourseFriday}"/>
+                    <CheckBox Grid.Column="12" Content="Sat" Style="{StaticResource DaySelectorToggle}"
+                              IsChecked="{Binding NewCourseSaturday}"/>
+                </Grid>
 
-					<StackPanel Grid.Column="0">
-						<TextBlock Text="Day" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
-						<TextBox Text="{Binding SelectedDay, UpdateSourceTrigger=PropertyChanged}"
+                <!-- Separator Section -->
+                <Grid Margin="0,10,0,25">
+                    <Rectangle Height="1" Fill="#3F3F46" VerticalAlignment="Center"/>
+                    <Border Background="#1E1E24" HorizontalAlignment="Center" Padding="8,0">
+                        <TextBlock Text="End Date" Foreground="#9CA3AF" FontSize="12" FontWeight="SemiBold"/>
+                    </Border>
+                </Grid>
+
+                <!-- Date Inputs -->
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Day" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
+                        <TextBox Text="{Binding SelectedDay, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}" HorizontalContentAlignment="Center"/>
-					</StackPanel>
+                    </StackPanel>
 
-					<StackPanel Grid.Column="2">
-						<TextBlock Text="Month" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
-						<TextBox Text="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}"
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Month" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
+                        <TextBox Text="{Binding SelectedMonth, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}" HorizontalContentAlignment="Center"/>
-					</StackPanel>
+                    </StackPanel>
 
-					<StackPanel Grid.Column="4">
-						<TextBlock Text="Year" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
-						<TextBox Text="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}"
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="Year" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
+                        <TextBox Text="{Binding SelectedYear, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource ModernTextBox}" HorizontalContentAlignment="Center"/>
-					</StackPanel>
-				</Grid>
+                    </StackPanel>
+                </Grid>
 
-				<!-- Result -->
-				<TextBlock Text="Resulting Date" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
-				<TextBox IsReadOnly="True"
+                <!-- Result -->
+                <TextBlock Text="Resulting Date" Style="{StaticResource SubtleText}" Margin="2,0,0,6"/>
+                <TextBox IsReadOnly="True"
                          Text="{Binding CalculatedDateString, UpdateSourceTrigger=PropertyChanged}"
                          Style="{StaticResource ModernTextBox}" Margin="0,0,0,28" Background="#18181B"/>
 
-				<Button Content="{Binding AddCourseFormTitle}" Style="{StaticResource PrimaryButton}"
+                <Button Content="{Binding AddCourseFormTitle}" Style="{StaticResource PrimaryButton}"
                         Command="{Binding AddCourseCommand}" Height="46" FontSize="15" FontWeight="SemiBold"/>
-			</StackPanel>
-		</Border>
-	</Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

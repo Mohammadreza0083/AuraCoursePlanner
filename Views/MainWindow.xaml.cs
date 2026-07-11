@@ -1,4 +1,3 @@
-using AuraCoursePlanner.Data;
 using AuraCoursePlanner.ViewModels;
 using System.Windows;
 
@@ -6,13 +5,12 @@ namespace AuraCoursePlanner.Views;
 
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    public MainWindow(MainViewModel viewModel)
     {
         InitializeComponent();
 
-        var vm = new MainViewModel(() => new AuraDbContext());
-        DataContext = vm;
+        DataContext = viewModel;
 
-        Loaded += async (_, _) => await vm.LoadCoursesCommand.ExecuteAsync(null);
+        Loaded += async (_, _) => await viewModel.LoadCoursesCommand.ExecuteAsync(null);
     }
 }

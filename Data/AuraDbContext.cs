@@ -30,6 +30,8 @@ public class AuraDbContext : DbContext
             entity.Property(c => c.Priority)
                   .HasConversion<int>()
                   .HasDefaultValue(CoursePriority.Medium);
+            entity.Property(c => c.ScheduledDaysMask)
+                  .HasDefaultValue(127);
             entity.HasMany(c => c.StudySessions)
                   .WithOne(s => s.Course)
                   .HasForeignKey(s => s.CourseId)

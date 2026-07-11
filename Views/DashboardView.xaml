@@ -4,181 +4,206 @@
              xmlns:vm="clr-namespace:AuraCoursePlanner.ViewModels"
              xmlns:models="clr-namespace:AuraCoursePlanner.Models">
 
-	<UserControl.Resources>
-		<!-- Priority pill color: High = warning-ish, Medium = neutral accent, Low = muted -->
-		<Style x:Key="PriorityPillStyle" TargetType="Border">
-			<Setter Property="CornerRadius" Value="10"/>
-			<Setter Property="Padding" Value="8,3"/>
-			<Setter Property="Background" Value="#2A2A33"/>
-			<Style.Triggers>
-				<DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.High}">
-					<Setter Property="Background" Value="#3A2226"/>
-				</DataTrigger>
-				<DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.Low}">
-					<Setter Property="Background" Value="#20242A"/>
-				</DataTrigger>
-			</Style.Triggers>
-		</Style>
+    <UserControl.Resources>
+        <!-- Priority pill color: High = warning-ish, Medium = neutral accent, Low = muted -->
+        <Style x:Key="PriorityPillStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="Background" Value="#2A2A33"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.High}">
+                    <Setter Property="Background" Value="#3A2226"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.Low}">
+                    <Setter Property="Background" Value="#20242A"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
-		<Style x:Key="PriorityPillTextStyle" TargetType="TextBlock">
-			<Setter Property="FontSize" Value="10"/>
-			<Setter Property="FontWeight" Value="SemiBold"/>
-			<Setter Property="Foreground" Value="#D4D4D8"/>
-			<Style.Triggers>
-				<DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.High}">
-					<Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
-				</DataTrigger>
-				<DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.Low}">
-					<Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-				</DataTrigger>
-			</Style.Triggers>
-		</Style>
+        <Style x:Key="PriorityPillTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#D4D4D8"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.High}">
+                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Priority}" Value="{x:Static models:CoursePriority.Low}">
+                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
-		<!-- Small transparent icon button, matching the 🗑 pattern used in CourseDetailView -->
-		<Style x:Key="CardIconButton" TargetType="Button">
-			<Setter Property="Background" Value="Transparent"/>
-			<Setter Property="BorderThickness" Value="0"/>
-			<Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-			<Setter Property="Cursor" Value="Hand"/>
-			<Setter Property="FontSize" Value="13"/>
-			<Setter Property="Width" Value="26"/>
-			<Setter Property="Height" Value="26"/>
-			<Setter Property="Padding" Value="0"/>
-		</Style>
-	</UserControl.Resources>
+        <!-- Small transparent icon button, matching the 🗑 pattern used in CourseDetailView -->
+        <Style x:Key="CardIconButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+    </UserControl.Resources>
 
-	<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28">
-		<StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28">
+        <StackPanel>
 
-			<Grid Margin="0,0,0,20">
-				<TextBlock Text="Dashboard" Style="{StaticResource HeadingText}" FontSize="26"/>
-				<Button Grid.Column="0" Content="⇅ Sort by Priority" HorizontalAlignment="Right"
+            <Grid Margin="0,0,0,20">
+                <TextBlock Text="Dashboard" Style="{StaticResource HeadingText}" FontSize="26"/>
+                <Button Grid.Column="0" Content="⇅ Sort by Priority" HorizontalAlignment="Right"
                         Style="{StaticResource SidebarButton}" Padding="12,8" FontSize="12"
                         Command="{Binding SortByPriorityCommand}"/>
-			</Grid>
+            </Grid>
 
-			<!-- ===== SUMMARY METRIC CARDS ===== -->
-			<Grid Margin="0,0,0,24">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="16"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="16"/>
-					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
+            <!-- ===== SUMMARY METRIC CARDS ===== -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-				<Border Grid.Column="0" Style="{StaticResource CardStyle}">
-					<StackPanel>
-						<TextBlock Text="ACTIVE COURSES" Style="{StaticResource SubtleText}"/>
-						<TextBlock Text="{Binding TotalActiveCourses}" FontSize="30" FontWeight="Bold" Margin="0,6,0,0"/>
-					</StackPanel>
-				</Border>
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="ACTIVE COURSES" Style="{StaticResource SubtleText}"/>
+                        <TextBlock Text="{Binding TotalActiveCourses}" FontSize="30" FontWeight="Bold" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
 
-				<Border Grid.Column="2" Style="{StaticResource CardStyle}">
-					<StackPanel>
-						<TextBlock Text="TOTAL HOURS WATCHED" Style="{StaticResource SubtleText}"/>
-						<TextBlock Text="{Binding TotalHoursWatched, StringFormat={}{0:0.0}h}"
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL HOURS WATCHED" Style="{StaticResource SubtleText}"/>
+                        <TextBlock Text="{Binding TotalHoursWatched, StringFormat={}{0:0.0}h}"
                                    FontSize="30" FontWeight="Bold" Margin="0,6,0,0"/>
-					</StackPanel>
-				</Border>
+                    </StackPanel>
+                </Border>
 
-				<Border Grid.Column="4" Style="{StaticResource CardStyle}">
-					<StackPanel>
-						<TextBlock Text="OVERALL COMPLETION" Style="{StaticResource SubtleText}"/>
-						<TextBlock Text="{Binding OverallCompletionRate, StringFormat={}{0:0.0}%}"
+                <Border Grid.Column="4" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="OVERALL COMPLETION" Style="{StaticResource SubtleText}"/>
+                        <TextBlock Text="{Binding OverallCompletionRate, StringFormat={}{0:0.0}%}"
                                    FontSize="30" FontWeight="Bold" Margin="0,6,0,0"
                                    Foreground="{StaticResource SuccessBrush}"/>
-					</StackPanel>
-				</Border>
-			</Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
-			<!-- ===== COURSE CARDS ===== -->
-			<ItemsControl ItemsSource="{Binding Courses}">
-				<ItemsControl.ItemsPanel>
-					<ItemsPanelTemplate>
-						<WrapPanel Orientation="Horizontal"/>
-					</ItemsPanelTemplate>
-				</ItemsControl.ItemsPanel>
+            <!-- ===== COURSE CARDS ===== -->
+            <ItemsControl ItemsSource="{Binding Courses}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-				<ItemsControl.ItemTemplate>
-					<DataTemplate DataType="{x:Type vm:CourseViewModel}">
-						<Border Style="{StaticResource CardStyle}" Width="340" Margin="0,0,16,16">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:CourseViewModel}">
+                        <Border Style="{StaticResource CardStyle}" Width="340" Margin="0,0,16,16">
 
-							<StackPanel>
-								<Grid>
-									<Grid.ColumnDefinitions>
-										<ColumnDefinition Width="*"/>
-										<ColumnDefinition Width="Auto"/>
-									</Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-									<!-- Title area is the click target for opening course detail -->
-									<StackPanel Grid.Column="0" Cursor="Hand" HorizontalAlignment="Left">
-										<StackPanel.InputBindings>
-											<MouseBinding MouseAction="LeftClick"
+                                    <!-- Title area is the click target for opening course detail -->
+                                    <StackPanel Grid.Column="0" Cursor="Hand" HorizontalAlignment="Left">
+                                        <StackPanel.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick"
                                                 Command="{Binding DataContext.SelectCourseCommand,
                                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"/>
-										</StackPanel.InputBindings>
-										<TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold"
+                                        </StackPanel.InputBindings>
+                                        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold"
                                                    TextTrimming="CharacterEllipsis"/>
-										<Border Style="{StaticResource PriorityPillStyle}"
+                                        <Border Style="{StaticResource PriorityPillStyle}"
                                                 HorizontalAlignment="Left" Margin="0,6,0,0">
-											<TextBlock Text="{Binding PriorityDisplay}"
+                                            <TextBlock Text="{Binding PriorityDisplay}"
                                                        Style="{StaticResource PriorityPillTextStyle}"/>
-										</Border>
-									</StackPanel>
+                                        </Border>
 
-									<!-- Edit / Delete actions -->
-									<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
-										<Button Content="✎" Style="{StaticResource CardIconButton}"
+                                        <!-- Scheduled-days indicator: full opacity = a study day for this course -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                            <TextBlock Text="S" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Opacity="{Binding IsSundayScheduled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                            <TextBlock Text="M" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Opacity="{Binding IsMondayScheduled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                            <TextBlock Text="T" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Opacity="{Binding IsTuesdayScheduled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                            <TextBlock Text="W" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Opacity="{Binding IsWednesdayScheduled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                            <TextBlock Text="T" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Opacity="{Binding IsThursdayScheduled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                            <TextBlock Text="F" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Opacity="{Binding IsFridayScheduled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                            <TextBlock Text="S" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       Opacity="{Binding IsSaturdayScheduled, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Edit / Delete actions -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                                        <Button Content="✎" Style="{StaticResource CardIconButton}"
                                                 ToolTip="Edit course"
                                                 Command="{Binding DataContext.StartEditCourseCommand,
                                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"/>
-										<Button Content="🗑" Style="{StaticResource CardIconButton}"
+                                        <Button Content="🗑" Style="{StaticResource CardIconButton}"
                                                 ToolTip="Delete course"
                                                 Command="{Binding DataContext.DeleteCourseCommand,
                                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"/>
-									</StackPanel>
-								</Grid>
+                                    </StackPanel>
+                                </Grid>
 
-								<Grid Margin="0,10,0,0">
-									<TextBlock Text="{Binding DynamicDailyPaceDisplay}"
+                                <Grid Margin="0,10,0,0">
+                                    <TextBlock Text="{Binding DynamicDailyPaceDisplay}"
                                                FontSize="11" FontWeight="SemiBold"
                                                Foreground="{Binding ProjectedToMissDeadline,
                                                             Converter={StaticResource MissedDeadlineToBrushConverter}}"/>
-								</Grid>
+                                </Grid>
 
-								<ProgressBar Style="{StaticResource ModernProgressBar}"
+                                <ProgressBar Style="{StaticResource ModernProgressBar}"
                                              Value="{Binding ProgressPercentage, Mode=OneWay}"
                                              Margin="0,14,0,6"/>
 
-								<Grid>
-									<TextBlock Text="{Binding ProgressPercentageDisplay}"
+                                <Grid>
+                                    <TextBlock Text="{Binding ProgressPercentageDisplay}"
                                                Style="{StaticResource SubtleText}"/>
-									<TextBlock HorizontalAlignment="Right" Style="{StaticResource SubtleText}">
-										<Run Text="Watched: "/>
-										<Run Text="{Binding TotalWatched, Converter={StaticResource TimeSpanToHmConverter}, Mode=OneWay}"/>
-									</TextBlock>
-								</Grid>
+                                    <TextBlock HorizontalAlignment="Right" Style="{StaticResource SubtleText}">
+                                        <Run Text="Watched: "/>
+                                        <Run Text="{Binding TotalWatched, Converter={StaticResource TimeSpanToHmConverter}, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </Grid>
 
-								<Grid Margin="0,4,0,0">
-									<TextBlock Style="{StaticResource SubtleText}">
-										<Run Text="Remaining: "/>
-										<Run Text="{Binding RemainingTime, Converter={StaticResource TimeSpanToHmConverter}, Mode=OneWay}"/>
-									</TextBlock>
-									<TextBlock HorizontalAlignment="Right" Style="{StaticResource SubtleText}">
-										<Run Text="Goal: "/>
-										<Run Text="{Binding GoalEndDate, StringFormat={}{0:MMM d}}"/>
-									</TextBlock>
-								</Grid>
-							</StackPanel>
-						</Border>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
+                                <Grid Margin="0,4,0,0">
+                                    <TextBlock Style="{StaticResource SubtleText}">
+                                        <Run Text="Remaining: "/>
+                                        <Run Text="{Binding RemainingTime, Converter={StaticResource TimeSpanToHmConverter}, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock HorizontalAlignment="Right" Style="{StaticResource SubtleText}">
+                                        <Run Text="Goal: "/>
+                                        <Run Text="{Binding GoalEndDate, StringFormat={}{0:MMM d}}"/>
+                                    </TextBlock>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-		</StackPanel>
-	</ScrollViewer>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

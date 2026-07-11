@@ -26,6 +26,33 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int newCourseHours;
     [ObservableProperty] private int newCourseMinutes;
     [ObservableProperty] private CoursePriority newCoursePriority = CoursePriority.Medium;
+    [ObservableProperty] private int newCourseScheduledDaysMask = 127;
+
+    private bool IsNewCourseDayScheduled(DayOfWeek day) => (NewCourseScheduledDaysMask & (1 << (int)day)) != 0;
+    private void SetNewCourseDayScheduled(DayOfWeek day, bool value)
+    {
+        var bit = 1 << (int)day;
+        NewCourseScheduledDaysMask = value ? (NewCourseScheduledDaysMask | bit) : (NewCourseScheduledDaysMask & ~bit);
+    }
+
+    public bool NewCourseSunday { get => IsNewCourseDayScheduled(DayOfWeek.Sunday); set => SetNewCourseDayScheduled(DayOfWeek.Sunday, value); }
+    public bool NewCourseMonday { get => IsNewCourseDayScheduled(DayOfWeek.Monday); set => SetNewCourseDayScheduled(DayOfWeek.Monday, value); }
+    public bool NewCourseTuesday { get => IsNewCourseDayScheduled(DayOfWeek.Tuesday); set => SetNewCourseDayScheduled(DayOfWeek.Tuesday, value); }
+    public bool NewCourseWednesday { get => IsNewCourseDayScheduled(DayOfWeek.Wednesday); set => SetNewCourseDayScheduled(DayOfWeek.Wednesday, value); }
+    public bool NewCourseThursday { get => IsNewCourseDayScheduled(DayOfWeek.Thursday); set => SetNewCourseDayScheduled(DayOfWeek.Thursday, value); }
+    public bool NewCourseFriday { get => IsNewCourseDayScheduled(DayOfWeek.Friday); set => SetNewCourseDayScheduled(DayOfWeek.Friday, value); }
+    public bool NewCourseSaturday { get => IsNewCourseDayScheduled(DayOfWeek.Saturday); set => SetNewCourseDayScheduled(DayOfWeek.Saturday, value); }
+
+    partial void OnNewCourseScheduledDaysMaskChanged(int value)
+    {
+        OnPropertyChanged(nameof(NewCourseSunday));
+        OnPropertyChanged(nameof(NewCourseMonday));
+        OnPropertyChanged(nameof(NewCourseTuesday));
+        OnPropertyChanged(nameof(NewCourseWednesday));
+        OnPropertyChanged(nameof(NewCourseThursday));
+        OnPropertyChanged(nameof(NewCourseFriday));
+        OnPropertyChanged(nameof(NewCourseSaturday));
+    }
 
     /// <summary>Null while adding a new course; set to the course being edited
     /// while the Add/Edit form is open in edit mode.</summary>
@@ -131,8 +158,12 @@ public partial class MainViewModel : ObservableObject
         {
             if (course.IsCompleted) continue;
 
-            var courseSpanDays = Math.Max((course.GoalEndDate.Date - course.CreatedAt.Date).Days, 1);
-            var flatDailyTarget = TimeSpan.FromMinutes(course.TotalDuration.TotalMinutes / courseSpanDays);
+            // Count only scheduled days between creation and deadline — a course
+            // studied 3x/week shouldn't have its daily target diluted across all 7.
+            var scheduledSpanDays = CountScheduledDays(course.CreatedAt.Date, course.GoalEndDate.Date, course.ScheduledDaysMask);
+            if (scheduledSpanDays <= 0) continue;
+
+            var flatDailyTarget = TimeSpan.FromMinutes(course.TotalDuration.TotalMinutes / scheduledSpanDays);
             if (flatDailyTarget <= TimeSpan.Zero) continue;
 
             var loggedDates = course.Sessions.Select(s => s.Date.Date).ToHashSet();
@@ -140,7 +171,8 @@ public partial class MainViewModel : ObservableObject
 
             while (cursor <= yesterday)
             {
-                if (!loggedDates.Contains(cursor))
+                // Only auto-fill days the course was actually scheduled for.
+                if (course.IsDayScheduled(cursor.DayOfWeek) && !loggedDates.Contains(cursor))
                 {
                     var autoSession = new StudySession
                     {
@@ -161,6 +193,21 @@ public partial class MainViewModel : ObservableObject
         }
 
         if (anyInserted) await db.SaveChangesAsync();
+    }
+
+    private static int CountScheduledDays(DateTime start, DateTime end, int scheduledDaysMask)
+    {
+        if (end < start) return 0;
+        if (scheduledDaysMask == 0) return Math.Max((end - start).Days, 1); // nothing selected: fall back to every day
+
+        var count = 0;
+        var cursor = start;
+        while (cursor <= end)
+        {
+            if ((scheduledDaysMask & (1 << (int)cursor.DayOfWeek)) != 0) count++;
+            cursor = cursor.AddDays(1);
+        }
+        return Math.Max(count, 1);
     }
 
     [RelayCommand]
@@ -185,6 +232,7 @@ public partial class MainViewModel : ObservableObject
         NewCourseHours = 0;
         NewCourseMinutes = 0;
         NewCoursePriority = CoursePriority.Medium;
+        NewCourseScheduledDaysMask = 127;
         SelectedDay = 0;
         SelectedMonth = 0;
         SelectedYear = 0;
@@ -204,6 +252,7 @@ public partial class MainViewModel : ObservableObject
         NewCourseHours = (int)course.TotalDuration.TotalHours;
         NewCourseMinutes = course.TotalDuration.Minutes;
         NewCoursePriority = course.Priority;
+        NewCourseScheduledDaysMask = course.ScheduledDaysMask;
 
         // Re-derive the day/month/year offset fields from the stored deadline
         // so the same relative-date picker used for Add works for Edit too.
@@ -254,10 +303,11 @@ public partial class MainViewModel : ObservableObject
                 entity.TotalDuration = duration;
                 entity.GoalEndDate = finalDate;
                 entity.Priority = NewCoursePriority;
+                entity.ScheduledDaysMask = NewCourseScheduledDaysMask;
                 await db.SaveChangesAsync();
 
                 var existingVm = Courses.FirstOrDefault(c => c.Id == editId);
-                existingVm?.ApplyEdit(title, duration, finalDate, NewCoursePriority);
+                existingVm?.ApplyEdit(title, duration, finalDate, NewCoursePriority, NewCourseScheduledDaysMask);
             }
         }
         else
@@ -267,7 +317,8 @@ public partial class MainViewModel : ObservableObject
                 Title = title,
                 TotalDuration = duration,
                 GoalEndDate = finalDate,
-                Priority = NewCoursePriority
+                Priority = NewCoursePriority,
+                ScheduledDaysMask = NewCourseScheduledDaysMask
             };
 
             db.Courses.Add(course);
@@ -285,6 +336,7 @@ public partial class MainViewModel : ObservableObject
         NewCourseHours = 0;
         NewCourseMinutes = 0;
         NewCoursePriority = CoursePriority.Medium;
+        NewCourseScheduledDaysMask = 127;
         SelectedDay = 0;
         SelectedMonth = 0;
         SelectedYear = 0;

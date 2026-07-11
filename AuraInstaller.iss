@@ -1,7 +1,7 @@
 ; Script for AuraCourse Planner
 [Setup]
 AppName=AuraCourse Planner
-AppVersion=1.0.0
+AppVersion=1.1.0
 DefaultDirName={autopf}\AuraCoursePlanner
 DefaultGroupName=AuraCourse Planner
 OutputDir=.\Installer
